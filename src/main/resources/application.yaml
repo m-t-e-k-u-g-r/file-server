@@ -6,3 +6,5 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+storage:
+  location: ${LOCATION:./uploads}
