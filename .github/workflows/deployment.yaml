@@ -1,0 +1,27 @@
+name: Deployment
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*.*.*"
+env:
+  IMAGE: ghcr.io/m-t-e-k-u-g-r/file-server
+jobs:
+  deploy-app:
+    name: Deploy Server
+    runs-on: ubuntu-latest
+    environment: env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: ./.github/actions/ghcr-login
+        with:
+          username: m-t-e-k-u-g-r
+          token: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push
+        uses: ./.github/actions/build-n-push
+        with:
+          image: ${{ env.IMAGE }}
+          context: .
