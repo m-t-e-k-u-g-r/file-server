@@ -27,10 +27,10 @@ public class AccessKey {
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "expires_at", nullable = false)
+    @Column(name = "expires_at", nullable = false, insertable = false, updatable = false)
     private Instant expiresAt;
 
     @Column(name = "revoked_at")
