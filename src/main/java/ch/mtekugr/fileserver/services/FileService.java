@@ -13,8 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -60,5 +64,26 @@ public class FileService {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getOriginalFilename() + "\"")
                 .body(resource);
+    }
+
+    public URI uploadFile(MultipartFile file, String url) {
+        File newFile = new File();
+        newFile.setOriginalFilename(Objects.requireNonNull(file.getOriginalFilename()));
+        newFile.setSize(file.getSize());
+        newFile.setStorageKey(UUID.randomUUID());
+
+        try {
+            Path root = Paths.get(Objects.requireNonNull(environment.getProperty("storage.location")));
+            if (!Files.exists(root)) Files.createDirectories(root);
+            Files.copy(
+                    file.getInputStream(),
+                    root.resolve(newFile.getStorageKey().toString())
+            );
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        File savedFile = fileRepository.save(newFile);
+        return URI.create(url + "/" + savedFile.getId());
     }
 }
