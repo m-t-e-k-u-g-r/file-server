@@ -45,4 +45,19 @@ public class FileController {
         URI uri = fileService.uploadFile(file, String.valueOf(request.getRequestURL()));
         return ResponseEntity.created(uri).build();
     }
+
+    @PostMapping("/{fileId}")
+    public ResponseEntity<String> addAccessKey(
+            @PathVariable UUID fileId,
+            @RequestHeader("Authorization") String key,
+            @RequestBody(required = false) String description,
+            HttpServletRequest request
+    ) {
+        if (!authService.checkAdminKey(key)) return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .build();
+        String accessKey = authService.createAccessKey(fileId, description);
+        URI uri = URI.create(request.getRequestURL() + "?key=" + accessKey);
+        return ResponseEntity.created(uri).build();
+    }
 }
