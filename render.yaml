@@ -1,0 +1,37 @@
+services:
+  - name: file-server
+    type: web
+    runtime: docker
+    repo: https://github.com/m-t-e-k-u-g-r/file-server.git
+    branch: main
+    autoDeployTrigger: commit
+    plan: free
+    envVars:
+      - key: ADMIN_KEY
+        sync: false
+      - key: DATABASE
+        fromDatabase:
+          name: file-server-database
+          property: database
+      - key: DB_HOST
+        fromDatabase:
+          name: file-server-database
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: file-server-database
+          property: port
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: file-server-database
+          property: password
+      - key: DB_USER
+        fromDatabase:
+          name: file-server-database
+          property: user
+
+databases:
+  - name: file-server-database
+    plan: free
+    ipAllowList: []
+    postgresMajorVersion: "18"
