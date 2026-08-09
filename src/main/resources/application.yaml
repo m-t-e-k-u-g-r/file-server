@@ -1,3 +1,12 @@
 spring:
   application:
     name: file-server
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DATABASE}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+admin:
+  key: ${ADMIN_KEY}
+storage:
+  location: ${LOCATION:./uploads}
