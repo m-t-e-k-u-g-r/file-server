@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,14 +28,18 @@ public class AccessKey {
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "expires_at", nullable = false, insertable = false, updatable = false)
+    @Column(name = "expires_at", nullable = false, updatable = false)
     private Instant expiresAt;
 
     @Column(name = "revoked_at")
     private Instant revokedAt;
 
-
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now();
+        this.expiresAt = Instant.now().plus(Duration.ofDays(30));
+    }
 }
