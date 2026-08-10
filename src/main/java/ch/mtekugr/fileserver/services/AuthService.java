@@ -1,6 +1,6 @@
 package ch.mtekugr.fileserver.services;
 
-import ch.mtekugr.fileserver.dtos.AccessKeyDto;
+import ch.mtekugr.fileserver.dtos.AccessKeyCredentials;
 import ch.mtekugr.fileserver.entities.AccessKey;
 import ch.mtekugr.fileserver.repositories.AccessKeyRepository;
 import ch.mtekugr.fileserver.repositories.FileRepository;
@@ -31,7 +31,7 @@ public class AuthService {
         return Objects.equals(key, environment.getProperty("admin.key"));
     }
 
-    public AccessKeyDto validateKey(String key) {
+    public AccessKeyCredentials validateKey(String key) {
         String[] parts = key.split("\\.", -1);
         if (parts.length != 2) throw new IllegalArgumentException("Access key has invalid structure");
 
@@ -39,10 +39,10 @@ public class AuthService {
             UUID id = UUID.fromString(parts[0]);
             UUID accessKey = UUID.fromString(parts[1]);
 
-            AccessKeyDto dto = new AccessKeyDto();
-            dto.setId(id);
-            dto.setKey(accessKey);
-            return dto;
+            AccessKeyCredentials credentials = new AccessKeyCredentials();
+            credentials.setId(id);
+            credentials.setKey(accessKey);
+            return credentials;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Access key has invalid structure");
         }

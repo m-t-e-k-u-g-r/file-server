@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class AccessKeyDto {
+public class AccessKeyCredentials {
     UUID id;
     UUID key;
 }
