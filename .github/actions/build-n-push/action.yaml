@@ -1,0 +1,20 @@
+name: build-n-push
+description: Build and push Docker image
+inputs:
+  image:
+    description: Docker image name
+    required: true
+  context:
+    description: Build context
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: ${{ inputs.context }}
+        push: true
+        tags: |
+          ${{ inputs.image }}:${{ github.ref_name }}
+          ${{ inputs.image }}:latest
