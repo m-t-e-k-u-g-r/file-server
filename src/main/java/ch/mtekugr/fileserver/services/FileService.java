@@ -1,6 +1,6 @@
 package ch.mtekugr.fileserver.services;
 
-import ch.mtekugr.fileserver.dtos.AccessKeyDto;
+import ch.mtekugr.fileserver.dtos.AccessKeyCredentials;
 import ch.mtekugr.fileserver.entities.AccessKey;
 import ch.mtekugr.fileserver.entities.File;
 import ch.mtekugr.fileserver.repositories.AccessKeyRepository;
@@ -45,7 +45,7 @@ public class FileService {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
-        AccessKeyDto credentials = authService.validateKey(key);
+        AccessKeyCredentials credentials = authService.validateKey(key);
         AccessKey savedKey = accessKeyRepository.findById(credentials.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (!passwordEncoder.matches(credentials.getKey().toString(), savedKey.getKeyHash())
