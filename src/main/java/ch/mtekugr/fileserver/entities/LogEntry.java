@@ -32,7 +32,7 @@ public class LogEntry {
     @Column(name = "revoked", nullable = false)
     private Boolean revoked;
 
-    @Column(name = "authorized")
+    @Column(name = "authorized", insertable = false)
     private Boolean authorized;
 
     @Column(name = "received", nullable = false)
