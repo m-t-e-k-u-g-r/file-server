@@ -70,3 +70,39 @@ uploadForm.addEventListener("submit", async (e) => {
         errElement.innerText = "Failed to upload file";
     }
 });
+
+const creationForm = document.forms.create;
+creationForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(creationForm);
+    const errElement = document.getElementById("creation-error");
+    const fileId = formData.get("fileId").trim();
+    if (fileId.length !== 36) {
+        errElement.innerText = "Invalid UUID"
+        return;
+    } else { errElement.innerText = "" }
+    const description = formData.get("description")?.trim() || null;
+
+    const res = await fetch("files/" + fileId, {
+        method: "POST",
+        headers: {
+            "Authorization": sessionStorage.getItem("adminKey")
+        },
+        body: description
+    });
+
+    if (!res.ok) {
+        errElement.innerText = "Failed to generate access key";
+        return;
+    }
+    const url = res.headers.get("Location");
+    displayQRCode(url);
+});
+
+function displayQRCode(url) {
+    new QRCode(document.getElementById("qrcode"), {
+        text: url,
+        width: 300,
+        height: 300
+    });
+}
