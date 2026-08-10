@@ -19,3 +19,26 @@ fetch("auth", {
     }
     updateUI();
 });
+
+const verifyForm = document.forms.verify;
+verifyForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(verifyForm);
+    const token = formData.get("token");
+
+    const res = await fetch("auth", {
+        method: "POST",
+        headers: {
+            "Authorization": token,
+        },
+    });
+
+    if (res.ok) {
+        sessionStorage.setItem("adminKey", token.toString());
+        verified = true;
+        updateUI();
+    } else {
+        sessionStorage.setItem("adminKey", null);
+        verified = false;
+    }
+});
