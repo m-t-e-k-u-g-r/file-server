@@ -42,3 +42,31 @@ verifyForm.addEventListener("submit", async (e) => {
         verified = false;
     }
 });
+
+const uploadForm = document.forms.upload;
+uploadForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById("file-upload");
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    const res = await fetch("files", {
+        method: "POST",
+        headers: {
+            "Authorization": sessionStorage.getItem("adminKey")
+        },
+        body: formData
+    });
+
+    const errElement = document.getElementById("upload-error");
+    if (res.ok) {
+        errElement.innerText = "";
+
+        document.getElementById("fileId").value = new URL(
+            res.headers.get("Location")
+        ).pathname.split("/").filter(Boolean).pop();
+    } else {
+        errElement.innerText = "Failed to upload file";
+    }
+});
