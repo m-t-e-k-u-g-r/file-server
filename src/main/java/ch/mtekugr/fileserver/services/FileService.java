@@ -3,8 +3,10 @@ package ch.mtekugr.fileserver.services;
 import ch.mtekugr.fileserver.dtos.AccessKeyCredentials;
 import ch.mtekugr.fileserver.entities.AccessKey;
 import ch.mtekugr.fileserver.entities.File;
+import ch.mtekugr.fileserver.entities.LogEntry;
 import ch.mtekugr.fileserver.repositories.AccessKeyRepository;
 import ch.mtekugr.fileserver.repositories.FileRepository;
+import ch.mtekugr.fileserver.repositories.LogEntryRepository;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -32,13 +34,15 @@ public class FileService {
     private final AccessKeyRepository accessKeyRepository;
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
+    private final LogEntryRepository logEntryRepository;
 
-    public FileService(FileRepository fileRepository, AuthService authService, AccessKeyRepository accessKeyRepository, PasswordEncoder passwordEncoder, Environment environment) {
+    public FileService(FileRepository fileRepository, AuthService authService, AccessKeyRepository accessKeyRepository, PasswordEncoder passwordEncoder, Environment environment, LogEntryRepository logEntryRepository) {
         this.fileRepository = fileRepository;
         this.authService = authService;
         this.accessKeyRepository = accessKeyRepository;
         this.passwordEncoder = passwordEncoder;
         this.environment = environment;
+        this.logEntryRepository = logEntryRepository;
     }
 
     public ResponseEntity<Resource> getFile(UUID fileId, String key) {
@@ -48,10 +52,18 @@ public class FileService {
         AccessKeyCredentials credentials = authService.validateKey(key);
         AccessKey savedKey = accessKeyRepository.findById(credentials.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (!passwordEncoder.matches(credentials.getKey().toString(), savedKey.getKeyHash())
-                || savedKey.getRevokedAt() != null
-                || savedKey.getExpiresAt().isBefore(Instant.now())
-        ) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        boolean matches = passwordEncoder.matches(credentials.getKey().toString(), savedKey.getKeyHash());
+        boolean revoked = savedKey.getRevokedAt() != null;
+        boolean expired = savedKey.getExpiresAt().isBefore(Instant.now());
+
+        logEntryRepository.save(new LogEntry(
+                savedKey.getId(),
+                file.getId(),
+                matches, revoked, expired
+        ));
+
+        if (!matches || revoked || expired) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         Path filePath = Paths.get(Objects.requireNonNull(environment.getProperty("storage.location")))
                 .resolve(file.getStorageKey().toString());
