@@ -34,14 +34,8 @@ public class FileController {
     @PostMapping
     public ResponseEntity<Void> addFile(
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("Authorization") String key,
             HttpServletRequest request
     ) {
-        if (file == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        if (!authService.checkAdminKey(key)) return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .build();
-
         URI uri = fileService.uploadFile(file, String.valueOf(request.getRequestURL()));
         return ResponseEntity.created(uri).build();
     }
