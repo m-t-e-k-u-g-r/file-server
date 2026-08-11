@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Console</title>
-    <link rel="stylesheet" href="admin.css"/>
-    <script defer src="admin.js"></script>
+    <title>Admin Console - File Server</title>
+    <link rel="stylesheet" href="shared.css"/>
+    <link rel="stylesheet" href="index.css"/>
+    <script defer src="index.js" type="module"></script>
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
 </head>
 <body>
     <main class="container">
-        <h1>Admin</h1>
+        <h1>Admin Console</h1>
         <!-- Token verification -->
         <section class="card" id="verification">
             <h2>Verify token</h2>
@@ -22,7 +23,7 @@
                            autocomplete="off" required
                     />
                 </div>
-                <button type="submit">Verify</button>
+                <button type="submit" class="btn-primary">Verify</button>
                 <p class="info">Status: <span id="status">not verified</span></p>
             </form>
         </section>
@@ -35,7 +36,7 @@
                         <label for="file-upload">File</label>
                         <input type="file" id="file-upload" name="file"/>
                     </div>
-                    <button type="submit">Upload</button>
+                    <button type="submit" class="btn-primary">Upload</button>
                 </form>
                 <div class="info">
                     <p id="upload-error"></p>
@@ -53,12 +54,15 @@
                         <label for="description">Description</label>
                         <input type="text" id="description" name="description" placeholder="Description"/>
                     </div>
-                    <button type="submit">Create access key</button>
+                    <button type="submit" class="btn-primary">Create access key</button>
                 </form>
                 <div class="info">
                     <p id="creation-error"></p>
                 </div>
                 <div id="qrcode"></div>
+                <button type="button" class="btn-primary" id="dashboard-btn">
+                    Open Dashboard
+                </button>
             </section>
         </div>
     </main>

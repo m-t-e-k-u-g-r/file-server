@@ -1,0 +1,136 @@
+:root {
+    --bg-color: #f5f5f5;
+    --card-bg: #fff;
+    --text-color: #222;
+    --header-color: #2c3e50;
+    --subheader-color: #34495e;
+    --border-color: #ddd;
+    --primary-btn-bg: #333;
+    --primary-btn-hover: #111;
+    --delete-btn-bg: #e74c3c;
+    --delete-btn-hover: #c0392b;
+    --revoke-btn-bg: #f39c12;
+    --revoke-btn-hover: #d35400;
+    --create-btn-bg: #16ff00;
+    --create-btn-hover: #0b9f00;
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #181818;
+        --card-bg: #242424;
+        --text-color: #eee;
+        --header-color: #ecf0f1;
+        --subheader-color: #bdc3c7;
+        --border-color: #3a3a3a;
+        --primary-btn-bg: #e5e5e5;
+        --primary-btn-hover: #fff;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+h1 {
+    color: var(--header-color);
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: var(--subheader-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    font-size: 0.9em;
+}
+
+button:disabled {
+    opacity: 0.8;
+}
+
+.btn-primary {
+    background-color: var(--primary-btn-bg);
+    color: var(--bg-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-btn-hover);
+}
+
+.btn-delete {
+    background-color: var(--delete-btn-bg);
+    color: white;
+}
+
+.btn-delete:not(:disabled):hover {
+    background-color: var(--delete-btn-hover);
+}
+
+.btn-revoke {
+    background-color: var(--revoke-btn-bg);
+    color: white;
+}
+
+.btn-revoke:not(:disabled):hover {
+    background-color: var(--revoke-btn-hover);
+}
+
+.btn-create {
+    background-color: var(--create-btn-bg);
+}
+
+.btn-create:not(:disabled):hover {
+    background-color: var(--create-btn-hover);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background-color: rgba(0,0,0,0.05);
+    font-weight: 600;
+}
+
+tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.card, .table-section {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-color);
+}
