@@ -1,10 +1,9 @@
 package ch.mtekugr.fileserver.controllers;
 
-import ch.mtekugr.fileserver.services.AuthService;
+import ch.mtekugr.fileserver.repositories.FileRepository;
 import ch.mtekugr.fileserver.services.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,12 +14,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/files")
 public class FileController {
-    private final AuthService authService;
     private final FileService fileService;
+    private final FileRepository fileRepository;
 
-    public FileController(AuthService authService, FileService fileService) {
-        this.authService = authService;
+    public FileController(FileService fileService, FileRepository fileRepository) {
         this.fileService = fileService;
+        this.fileRepository = fileRepository;
     }
 
     @GetMapping("/{fileId}")
@@ -40,18 +39,12 @@ public class FileController {
         return ResponseEntity.created(uri).build();
     }
 
-    @PostMapping("/{fileId}")
-    public ResponseEntity<String> addAccessKey(
-            @PathVariable UUID fileId,
-            @RequestHeader("Authorization") String key,
-            @RequestBody(required = false) String description,
-            HttpServletRequest request
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<Void> deleteFile(
+            @PathVariable UUID fileId
     ) {
-        if (!authService.checkAdminKey(key)) return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .build();
-        String accessKey = authService.createAccessKey(fileId, description);
-        URI uri = URI.create(request.getRequestURL() + "?key=" + accessKey);
-        return ResponseEntity.created(uri).build();
+        boolean removed = fileRepository.removeById(fileId);
+        if (removed) return ResponseEntity.noContent().build();
+        return ResponseEntity.notFound().build();
     }
 }
