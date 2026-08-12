@@ -7,6 +7,10 @@ if (await checkLogin()) {
     await fetchAll();
 }
 
+document.getElementById("return").addEventListener("click", () => {
+    window.location.href = "/index.html";
+});
+
 export async function fetchAll() {
     const resourceConfig = [
         { key: "file", link: "/admin/files", values: ["originalFilename",
