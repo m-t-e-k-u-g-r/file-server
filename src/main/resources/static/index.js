@@ -16,7 +16,6 @@ verified = await checkLogin();
 updateUI();
 
 const fileId = new URLSearchParams(document.location.search).get("fileId");
-console.log(fileId)
 if (fileId && fileId.trim() !== "") {
     document.getElementById("fileId").setAttribute("value", fileId);
 }

@@ -4,6 +4,10 @@
     margin: 0 auto;
 }
 
+#verified-actions {
+    display: none;
+}
+
 .form-group {
     display: flex;
     flex-direction: column;
