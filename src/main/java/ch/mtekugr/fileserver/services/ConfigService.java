@@ -23,7 +23,7 @@ public class ConfigService {
     public String getKeySecret() {
         Config config = configRepository
                 .findById("key.secret")
-                .orElse(configRepository.updateOrInsert(
+                .orElseGet(() -> configRepository.updateOrInsert(
                         new Config("key.secret", generateSecret(64))
                 ));
         return config.getValue();
