@@ -11,9 +11,11 @@ import java.util.Optional;
 @Service
 public class ConfigService {
     private final ConfigRepository configRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public ConfigService(ConfigRepository configRepository) {
+    public ConfigService(ConfigRepository configRepository, PasswordEncoder passwordEncoder) {
         this.configRepository = configRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public String getKeySecret() {
@@ -37,5 +39,15 @@ public class ConfigService {
         random.nextBytes(secret);
 
         return Base64.getEncoder().encodeToString(secret);
+    }
+
+    public Optional<Config> getAdminPassword() {
+        return configRepository.findById("admin.password");
+    }
+
+    public void setAdminPassword(String newPassword) {
+        String hashed = passwordEncoder.encode(newPassword);
+        Config updated = new Config("admin.password", hashed);
+        configRepository.updateOrInsert(updated);
     }
 }

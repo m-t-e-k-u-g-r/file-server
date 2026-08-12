@@ -17,22 +17,22 @@ import java.util.UUID;
 @Service
 public class AuthService {
     private final AccessKeyRepository accessKeyRepository;
-    private final Environment environment;
     private final FileRepository fileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final ConfigService configService;
 
-    public AuthService(AccessKeyRepository accessKeyRepository, Environment environment, FileRepository fileRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(AccessKeyRepository accessKeyRepository, FileRepository fileRepository, PasswordEncoder passwordEncoder, JwtService jwtService, ConfigService configService) {
         this.accessKeyRepository = accessKeyRepository;
-        this.environment = environment;
         this.fileRepository = fileRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.configService = configService;
     }
 
     public ResponseEntity<TokenResponse> adminLogin(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return ResponseEntity.badRequest().build();
-        String key = authHeader.substring(7);
+        String key = extractAdminKey(authHeader);
+        if (key == null) return ResponseEntity.badRequest().build();
 
         TokenResponse response = generateTokens(key);
         if (response == null) {
@@ -42,14 +42,14 @@ public class AuthService {
     }
 
     private boolean checkAdminKey(String key) {
-        String hash = environment.getProperty("admin.key.hash");
-        return passwordEncoder.matches(key, hash);
+        Config savedPassword = configService.getAdminPassword().orElseThrow(() ->
+                new RuntimeException("Admin password is not set. Set ADMIN_INITIAL_PWD to continue.")
+        );
+        return passwordEncoder.matches(key, savedPassword.getValue());
     }
 
     public TokenResponse generateTokens(String key) {
-        if (!checkAdminKey(key)) {
-            return null;
-        }
+        if (!checkAdminKey(key)) return null;
         String accessToken = jwtService.generateToken("admin");
         return new TokenResponse(accessToken);
     }
@@ -84,5 +84,10 @@ public class AuthService {
         accessKey.setKeyHash(passwordEncoder.encode(key.toString()));
         AccessKey newKey = accessKeyRepository.save(accessKey);
         return newKey.getId() + "." + key;
+    }
+
+    private String extractAdminKey(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
+        return authHeader.substring(7);
     }
 }
