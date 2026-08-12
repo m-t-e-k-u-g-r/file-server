@@ -8,7 +8,7 @@ CREATE TABLE file (
 
 CREATE TABLE access_key (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    file_id UUID NOT NULL REFERENCES file(id),
+    file_id UUID NOT NULL,
     key_hash VARCHAR NOT NULL,
     description TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
@@ -29,6 +29,11 @@ CREATE TABLE log_entry (
         NOT revoked
     ) STORED,
     received TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE config (
+    key TEXT UNIQUE PRIMARY KEY,
+    value TEXT NOT NULL
 );
 
 CREATE INDEX idx_access_key_file_id

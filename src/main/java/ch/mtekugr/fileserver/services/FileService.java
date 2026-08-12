@@ -1,9 +1,11 @@
 package ch.mtekugr.fileserver.services;
 
 import ch.mtekugr.fileserver.dtos.AccessKeyCredentials;
+import ch.mtekugr.fileserver.dtos.FileDto;
 import ch.mtekugr.fileserver.entities.AccessKey;
 import ch.mtekugr.fileserver.entities.File;
 import ch.mtekugr.fileserver.entities.LogEntry;
+import ch.mtekugr.fileserver.mappers.FileMapper;
 import ch.mtekugr.fileserver.repositories.AccessKeyRepository;
 import ch.mtekugr.fileserver.repositories.FileRepository;
 import ch.mtekugr.fileserver.repositories.LogEntryRepository;
@@ -24,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -35,14 +38,23 @@ public class FileService {
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
     private final LogEntryRepository logEntryRepository;
+    private final FileMapper fileMapper;
 
-    public FileService(FileRepository fileRepository, AuthService authService, AccessKeyRepository accessKeyRepository, PasswordEncoder passwordEncoder, Environment environment, LogEntryRepository logEntryRepository) {
+    public FileService(FileRepository fileRepository, AuthService authService, AccessKeyRepository accessKeyRepository, PasswordEncoder passwordEncoder, Environment environment, LogEntryRepository logEntryRepository, FileMapper fileMapper) {
         this.fileRepository = fileRepository;
         this.authService = authService;
         this.accessKeyRepository = accessKeyRepository;
         this.passwordEncoder = passwordEncoder;
         this.environment = environment;
         this.logEntryRepository = logEntryRepository;
+        this.fileMapper = fileMapper;
+    }
+
+    public List<FileDto> getDtos() {
+        List<File> files = fileRepository.findAll();
+        return files.stream()
+                .map(fileMapper::toDto)
+                .toList();
     }
 
     public ResponseEntity<Resource> getFile(UUID fileId, String key) {

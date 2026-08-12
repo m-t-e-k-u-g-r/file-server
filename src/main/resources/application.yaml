@@ -7,6 +7,7 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 admin:
-  key: ${ADMIN_KEY}
+  init:
+    password: ${ADMIN_INITIAL_PWD}
 storage:
   location: ${LOCATION:./uploads}
