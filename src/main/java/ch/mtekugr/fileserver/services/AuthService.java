@@ -3,9 +3,9 @@ package ch.mtekugr.fileserver.services;
 import ch.mtekugr.fileserver.dtos.AccessKeyCredentials;
 import ch.mtekugr.fileserver.dtos.TokenResponse;
 import ch.mtekugr.fileserver.entities.AccessKey;
+import ch.mtekugr.fileserver.entities.Config;
 import ch.mtekugr.fileserver.repositories.AccessKeyRepository;
 import ch.mtekugr.fileserver.repositories.FileRepository;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +39,14 @@ public class AuthService {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(response);
+    }
+
+    public void changePassword(String authHeader, String newPassword) {
+        String key = extractAdminKey(authHeader);
+        if (key == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (!checkAdminKey(key)) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+
+        configService.setAdminPassword(newPassword);
     }
 
     private boolean checkAdminKey(String key) {

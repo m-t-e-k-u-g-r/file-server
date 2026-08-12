@@ -2,6 +2,8 @@ package ch.mtekugr.fileserver.services;
 
 import ch.mtekugr.fileserver.entities.Config;
 import ch.mtekugr.fileserver.repositories.ConfigRepository;
+import ch.mtekugr.fileserver.config.PasswordConfig.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -19,17 +21,12 @@ public class ConfigService {
     }
 
     public String getKeySecret() {
-        Optional<Config> config = configRepository.findById("key.secret");
-        if (config.isPresent()) {
-            return config.get().getValue();
-        } else {
-            String secret = generateSecret(64);
-            Config newConfig = new Config();
-            newConfig.setKey("key.secret");
-            newConfig.setValue(secret);
-            configRepository.save(newConfig);
-            return secret;
-        }
+        Config config = configRepository
+                .findById("key.secret")
+                .orElse(configRepository.updateOrInsert(
+                        new Config("key.secret", generateSecret(64))
+                ));
+        return config.getValue();
     }
 
     private String generateSecret(int bytes) {
