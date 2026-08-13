@@ -100,6 +100,9 @@ creationForm.addEventListener("submit", async (e) => {
 });
 
 function displayQRCode(url) {
+    document.getElementById("qrcode").addEventListener("click", () => {
+        window.open(url);
+    });
     new QRCode(document.getElementById("qrcode"), {
         text: url,
         width: 300,
