@@ -14,6 +14,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,21 @@ public class FileService {
         this.fileMapper = fileMapper;
     }
 
+    public MediaType getContentType(String filename) {
+        String extension = filename.substring(filename.lastIndexOf(".") + 1);
+        return switch (extension) {
+            case "pdf" -> MediaType.APPLICATION_PDF;
+            case "png" -> MediaType.IMAGE_PNG;
+            case "jpg", "jpeg" -> MediaType.IMAGE_JPEG;
+            case "md" -> MediaType.TEXT_MARKDOWN;
+            case "txt" -> MediaType.TEXT_PLAIN;
+            case "json" -> MediaType.APPLICATION_JSON;
+            case "xml" -> MediaType.APPLICATION_XML;
+            case "yaml" -> MediaType.APPLICATION_YAML;
+            default -> MediaType.APPLICATION_OCTET_STREAM;
+        };
+    }
+
     public List<FileDto> getDtos() {
         List<File> files = fileRepository.findAll();
         return files.stream()
@@ -84,9 +100,11 @@ public class FileService {
         if (!resource.exists()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+        MediaType contentType = getContentType(file.getOriginalFilename());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getOriginalFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getOriginalFilename() + "\"")
+                .contentType(contentType)
                 .body(resource);
     }
 
