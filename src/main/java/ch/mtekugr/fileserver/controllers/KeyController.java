@@ -3,9 +3,9 @@ package ch.mtekugr.fileserver.controllers;
 import ch.mtekugr.fileserver.services.AccessKeyService;
 import ch.mtekugr.fileserver.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.UUID;
@@ -28,7 +28,11 @@ public class KeyController {
             HttpServletRequest request
     ) {
         String accessKey = authService.createAccessKey(fileId, description);
-        URI uri = URI.create(request.getRequestURL() + "?key=" + accessKey);
+        URI uri = UriComponentsBuilder
+                .fromUriString(request.getRequestURL().toString())
+                .replacePath("/files/" + fileId)
+                .queryParam("key", accessKey)
+                .build().toUri();
         return ResponseEntity.created(uri).build();
     }
 
