@@ -7,10 +7,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class AccessKeyDto {
+public class AccessKeyCredentials {
     UUID id;
-    String fileName;
-    String description;
-    Long createdAt;
-    AccessKeyStatus status;
+    UUID key;
 }

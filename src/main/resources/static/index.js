@@ -1,3 +1,5 @@
+import {checkLogin, getHeaders} from "./auth.js";
+
 let verified = false;
 function updateUI() {
     const adminActions = document.getElementById("verified-actions");
@@ -10,14 +12,17 @@ function updateUI() {
     statusDisplay.innerText = verified ? 'verified' : 'not verified';
 }
 
-fetch("auth", {
-    method: "POST",
-    headers: {"Authorization": sessionStorage.getItem("adminKey")}
-}).then(r => {
-    if (r.ok) {
-        verified = true;
-    }
-    updateUI();
+verified = await checkLogin();
+updateUI();
+
+const fileId = new URLSearchParams(document.location.search).get("fileId");
+if (fileId && fileId.trim() !== "") {
+    document.getElementById("fileId").setAttribute("value", fileId);
+}
+
+const dashboardBtn = document.getElementById("dashboard-btn");
+dashboardBtn.addEventListener("click", (e) => {
+    window.open("/admin-ui/index.html")
 });
 
 const verifyForm = document.forms.verify;
@@ -26,19 +31,18 @@ verifyForm.addEventListener("submit", async (e) => {
     const formData = new FormData(verifyForm);
     const token = formData.get("token");
 
-    const res = await fetch("auth", {
+    const res = await fetch("auth/login", {
         method: "POST",
-        headers: {
-            "Authorization": token,
-        },
+        headers: getHeaders(token),
     });
 
     if (res.ok) {
-        sessionStorage.setItem("adminKey", token.toString());
+        const data = await res.json();
+        sessionStorage.setItem("accessToken", data.accessToken);
         verified = true;
         updateUI();
     } else {
-        sessionStorage.setItem("adminKey", null);
+        sessionStorage.removeItem("accessToken");
         verified = false;
     }
 });
@@ -53,9 +57,7 @@ uploadForm.addEventListener("submit", async (e) => {
 
     const res = await fetch("files", {
         method: "POST",
-        headers: {
-            "Authorization": sessionStorage.getItem("adminKey")
-        },
+        headers: getHeaders(),
         body: formData
     });
 
@@ -83,11 +85,9 @@ creationForm.addEventListener("submit", async (e) => {
     } else { errElement.innerText = "" }
     const description = formData.get("description")?.trim() || null;
 
-    const res = await fetch("files/" + fileId, {
+    const res = await fetch("keys/" + fileId, {
         method: "POST",
-        headers: {
-            "Authorization": sessionStorage.getItem("adminKey")
-        },
+        headers: getHeaders(),
         body: description
     });
 
@@ -100,6 +100,9 @@ creationForm.addEventListener("submit", async (e) => {
 });
 
 function displayQRCode(url) {
+    document.getElementById("qrcode").addEventListener("click", () => {
+        window.open(url);
+    });
     new QRCode(document.getElementById("qrcode"), {
         text: url,
         width: 300,

@@ -1,15 +1,20 @@
 package ch.mtekugr.fileserver.services;
 
-import ch.mtekugr.fileserver.dtos.AccessKeyDto;
+import ch.mtekugr.fileserver.dtos.AccessKeyCredentials;
+import ch.mtekugr.fileserver.dtos.FileDto;
 import ch.mtekugr.fileserver.entities.AccessKey;
 import ch.mtekugr.fileserver.entities.File;
+import ch.mtekugr.fileserver.entities.LogEntry;
+import ch.mtekugr.fileserver.mappers.FileMapper;
 import ch.mtekugr.fileserver.repositories.AccessKeyRepository;
 import ch.mtekugr.fileserver.repositories.FileRepository;
+import ch.mtekugr.fileserver.repositories.LogEntryRepository;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -32,26 +38,60 @@ public class FileService {
     private final AccessKeyRepository accessKeyRepository;
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
+    private final LogEntryRepository logEntryRepository;
+    private final FileMapper fileMapper;
 
-    public FileService(FileRepository fileRepository, AuthService authService, AccessKeyRepository accessKeyRepository, PasswordEncoder passwordEncoder, Environment environment) {
+    public FileService(FileRepository fileRepository, AuthService authService, AccessKeyRepository accessKeyRepository, PasswordEncoder passwordEncoder, Environment environment, LogEntryRepository logEntryRepository, FileMapper fileMapper) {
         this.fileRepository = fileRepository;
         this.authService = authService;
         this.accessKeyRepository = accessKeyRepository;
         this.passwordEncoder = passwordEncoder;
         this.environment = environment;
+        this.logEntryRepository = logEntryRepository;
+        this.fileMapper = fileMapper;
+    }
+
+    public MediaType getContentType(String filename) {
+        String extension = filename.substring(filename.lastIndexOf(".") + 1);
+        return switch (extension) {
+            case "pdf" -> MediaType.APPLICATION_PDF;
+            case "png" -> MediaType.IMAGE_PNG;
+            case "jpg", "jpeg" -> MediaType.IMAGE_JPEG;
+            case "md" -> MediaType.TEXT_MARKDOWN;
+            case "txt" -> MediaType.TEXT_PLAIN;
+            case "json" -> MediaType.APPLICATION_JSON;
+            case "xml" -> MediaType.APPLICATION_XML;
+            case "yaml" -> MediaType.APPLICATION_YAML;
+            default -> MediaType.APPLICATION_OCTET_STREAM;
+        };
+    }
+
+    public List<FileDto> getDtos() {
+        List<File> files = fileRepository.findAll();
+        return files.stream()
+                .map(fileMapper::toDto)
+                .toList();
     }
 
     public ResponseEntity<Resource> getFile(UUID fileId, String key) {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
-        AccessKeyDto credentials = authService.validateKey(key);
+        AccessKeyCredentials credentials = authService.validateKey(key);
         AccessKey savedKey = accessKeyRepository.findById(credentials.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (!passwordEncoder.matches(credentials.getKey().toString(), savedKey.getKeyHash())
-                || savedKey.getRevokedAt() != null
-                || savedKey.getExpiresAt().isBefore(Instant.now())
-        ) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        boolean matches = passwordEncoder.matches(credentials.getKey().toString(), savedKey.getKeyHash());
+        boolean revoked = savedKey.getRevokedAt() != null;
+        boolean expired = savedKey.getExpiresAt().isBefore(Instant.now());
+
+        logEntryRepository.save(new LogEntry(
+                savedKey.getId(),
+                file.getId(),
+                matches, revoked, expired
+        ));
+
+        if (!matches || revoked || expired) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         Path filePath = Paths.get(Objects.requireNonNull(environment.getProperty("storage.location")))
                 .resolve(file.getStorageKey().toString());
@@ -60,9 +100,11 @@ public class FileService {
         if (!resource.exists()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+        MediaType contentType = getContentType(file.getOriginalFilename());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getOriginalFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getOriginalFilename() + "\"")
+                .contentType(contentType)
                 .body(resource);
     }
 

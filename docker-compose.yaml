@@ -3,7 +3,7 @@ services:
     image: ghcr.io/m-t-e-k-u-g-r/file-server:latest
     build: .
     environment:
-      ADMIN_KEY: ${ADMIN_KEY}
+      ADMIN_INITIAL_PWD: ${ADMIN_INITIAL_PWD}
       DB_HOST: database
       DATABASE: ${DATABASE}
       DB_USER: ${DB_USER}
