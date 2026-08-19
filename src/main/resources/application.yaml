@@ -6,6 +6,9 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 10MB
 admin:
   init:
     password: ${ADMIN_INITIAL_PWD}
