@@ -128,4 +128,21 @@ public class FileService {
         File savedFile = fileRepository.save(newFile);
         return URI.create(url + "/" + savedFile.getId());
     }
+
+    public void deleteFile(UUID fileId) {
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+
+        Path filePath = Paths.get(Objects.requireNonNull(environment.getProperty("storage.location")))
+                .resolve(file.getStorageKey().toString());
+
+        try {
+            Files.deleteIfExists(filePath);
+            fileRepository.deleteById(fileId);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not delete file from storage");
+        }
+
+        fileRepository.deleteById(fileId);
+    }
 }
